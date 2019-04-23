@@ -3,17 +3,54 @@
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin">
 
-    <ListView
-        android:id="@+id/widget_listview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <Button
+        android:id="@+id/np"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:text="Nutella Pie"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/br"
+        android:layout_width="85dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/cc"
+        android:layout_toEndOf="@+id/cc"
+        android:text="Brownies"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/yc"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/np"
+        android:text="Yellow Cake"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/cc"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/yc"
+        android:text="Cheesecake"
+        android:textAllCaps="false" />
+
+    <TextView
+        android:id="@+id/ingredientItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/br"
+        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp" />
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
+        android:text="TextView" />
 
 </RelativeLayout>

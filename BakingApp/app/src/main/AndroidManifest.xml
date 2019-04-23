@@ -32,13 +32,12 @@
         </activity>
         <activity
             android:name=".RecipeDetails"
-            android:launchMode="singleTask" />
+            android:launchMode="singleTask"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
         <activity
             android:name=".StepDetails"
             android:launchMode="singleTask" />
-
-        <service android:name=".WidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"/>
+        <service android:name=".WidgetService"/>
     </application>
 
 </manifest>

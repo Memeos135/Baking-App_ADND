@@ -1,82 +1,105 @@
 package com.example.bakingapp;
 
-
+import android.app.IntentService;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.RemoteViews;
-import android.widget.RemoteViewsService;
+import android.util.Log;
 
-public class WidgetService extends RemoteViewsService {
-    // THIS WHOLE CLASS HAS BEEN TAKEN FROM AN ONLINE VIDEO SOURCE TO IMPLEMENT LISTVIEW WIDGET
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
 
-    @Override
-    public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new WidgetItemFactory(getApplicationContext(), intent);
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class WidgetService extends IntentService {
+    Context context;
+    static String responseS = "";
+
+    public WidgetService() {
+        super("RemoteIntentService");
     }
 
-    class WidgetItemFactory implements RemoteViewsFactory{
-        private Context context;
-        private int widgetId;
-        private String[] x = {"Nutella Pie", "Brownies", "Yellow Cake", "Cheesecake"};
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        context = this;
+        if ("np".equals(intent.getAction())) {
 
-        WidgetItemFactory(Context context, Intent intent){
-            this.context = context;
-            this.widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+            readING(0, context);
+
+        }else if("br".equals(intent.getAction())){
+
+            readING(1, context);
+
+        }else if("yc".equals(intent.getAction())){
+
+            readING(2, context);
+
+        }else{
+
+            readING(3, context);
 
         }
+    }
 
-        @Override
-        public void onCreate() {
-            // CONNECT TO DATASOURCE - no heavy operations
-        }
+    public void readING(final int parent_position, final Context context){
 
-        @Override
-        public void onDataSetChanged() {
-            //
-        }
+        RequestQueue queue = Volley.newRequestQueue(context);
 
-        @Override
-        public void onDestroy() {
-            // CLOSE CONNECTION TO DATASOURCE
-        }
+        final String url = "https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json";
 
-        @Override
-        public int getCount() {
-            return x.length;
-        }
+        // Prepare the Request based on the json being read. In this case, we are reading a json that is structured to be an array of jsonObjects
+        // Hence, we are using a JsonArrayRequest
+        JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONArray>()
+                {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // display response
+                        try {
 
-        @Override
-        public RemoteViews getViewAt(int i) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_listview_item);
-            views.setTextViewText(R.id.listview_widget_item, x[i]);
+                            JSONObject jsonObject = response.getJSONObject(parent_position);
+                            JSONArray jsonArray = jsonObject.getJSONArray("ingredients");
 
-            // THIS INTENT PORTION HAS BEEN TAKEN FROM AN ONLINE SOURCE
-            Intent fillInIntent = new Intent();
-            fillInIntent.putExtra("recipe_number", String.valueOf(i));
-            views.setOnClickFillInIntent(R.id.listview_widget_item, fillInIntent);
+                            for(int i = 0; i < jsonArray.length(); i++){
+                                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
 
-            return views;
-        }
+                                String ingredient = jsonObject1.getString("ingredient");
 
-        @Override
-        public RemoteViews getLoadingView() {
-            return null;
-        }
+                                responseS += "# " + ingredient + "\n";
 
-        @Override
-        public int getViewTypeCount() {
-            return 1;
-        }
+                            }
 
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
+                            setupIngredientText(context);
 
-        @Override
-        public boolean hasStableIds() {
-            return true;
-        }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("Error.Response", error.toString());
+                    }
+                }
+        );
+
+        // add it to the RequestQueue
+        queue.add(getRequest);
+    }
+
+    public void setupIngredientText(Context context){
+
+        Intent brIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        brIntent.putExtra("response", responseS);
+        sendBroadcast(brIntent);
+        responseS = "";
     }
 }

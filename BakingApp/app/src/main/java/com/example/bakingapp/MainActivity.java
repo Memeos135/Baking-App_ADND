@@ -7,6 +7,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -32,9 +33,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(getIntent().getStringExtra("Name") != null){
-            TextView textView = findViewById(R.id.textView);
-            textView.setText(getIntent().getStringExtra("Name"));
+        // ESPRESSO TESTING
+        if(getIntent().getStringExtra("test") != null){
+            final TextView textView = findViewById(R.id.textView);
+            textView.setText(getIntent().getStringExtra("test"));
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    textView.setText("Espresso");
+                }
+            });
         }
 
         context = this;

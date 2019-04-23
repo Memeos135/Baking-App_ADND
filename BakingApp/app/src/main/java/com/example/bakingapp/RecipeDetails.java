@@ -1,10 +1,6 @@
 package com.example.bakingapp;
 
-import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -80,32 +76,27 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
 
             tabletFlag = true;
 
-            if(savedInstanceState == null && getIntent().getStringExtra("recipe_number") == null){
+            if(getIntent().getStringExtra("recipe_number") == null){
 
                 readRecipeIngredients();
                 position = Integer.parseInt(getIntent().getStringExtra("position"));
 
             }else{
 
-                readRecipeIngredients();
-                position = Integer.parseInt(getIntent().getStringExtra("recipe_number"));
-
+                if(savedInstanceState == null) {
+                    readRecipeIngredients();
+                    position = Integer.parseInt(getIntent().getStringExtra("recipe_number"));
+                }
             }
 
         }else {
 
-            if (savedInstanceState == null && getIntent().getStringExtra("recipe_number") == null) {
+            if (getIntent().getStringExtra("test") == null) {
 
-                readRecipeIngredients();
-                position = Integer.parseInt(getIntent().getStringExtra("position"));
-                Log.i("test", "hello");
-
-            } else {
-
-                readRecipeIngredients();
-                position = Integer.parseInt(getIntent().getStringExtra("recipe_number"));
-                Log.i("test", "hi");
-
+                if(savedInstanceState == null) {
+                    readRecipeIngredients();
+                    position = Integer.parseInt(getIntent().getStringExtra("position"));
+                }
             }
         }
     }
@@ -147,7 +138,15 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
                             for(int j = 0; j < jsonArray1.length(); j++){
                                 JSONObject jsonObject1 = jsonArray1.getJSONObject(j);
 
-                                String id = jsonObject1.getString("id");
+                                String id = "";
+
+                                // There is an issue with the ids of Cheesecake Recipe in the JSON provided. After the 6th id, it jumps an additional
+                                // step to make the id = 8. So, I am decrementing it by one.
+                                if(Integer.parseInt(jsonObject1.getString("id")) > 6 && position == 2){
+                                    id = String.valueOf(Integer.parseInt(jsonObject1.getString("id")) - 1);
+                                }else {
+                                    id = jsonObject1.getString("id");
+                                }
                                 String short_description = jsonObject1.getString("shortDescription");
                                 String description = jsonObject1.getString("description");
                                 String videoURL = jsonObject1.getString("videoURL");
@@ -200,6 +199,7 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
 
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
         outState.putParcelableArrayList("myArrayList", ingredients);
         outState.putParcelableArrayList("MyStepsArrayList", steps);
         outState.putInt("position", position);
@@ -224,12 +224,13 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
         flag = savedInstanceState.getBoolean("flag");
         id = savedInstanceState.getInt("id");
 
-        playerSetup(id);
+        if(tabletFlag) {
 
-        TextView textView = findViewById(R.id.desc);
-        textView.setText(steps.get(id).getDescription());
+            TextView textView = findViewById(R.id.desc);
+            textView.setText(steps.get(id).getDescription());
 
-        reSetupIngredients(ingredients, steps);
+        }
+            reSetupIngredients(ingredients, steps);
     }
 
     public void reSetupIngredients(ArrayList<IngredientSetter> ingredients, ArrayList<StepSetter> steps){
@@ -266,7 +267,6 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
 
     public void playerSetup(int id){
         path = steps.get(id).getVideoURL();
-
         // 1. Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory =
@@ -308,16 +308,6 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
         if (player != null) {
             player.setPlayWhenReady(false); //to pause a video because now our video player is not in focus
         }
-//        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-//        intent.setComponent(new ComponentName(context, IngredientsWidget.class));
-//        // Use an array and EXTRA_APPWIDGET_IDS instead of AppWidgetManager.EXTRA_APPWIDGET_ID,
-//        // since it seems the onUpdate() is only fired on that:
-//        ArrayList<String> ing = new ArrayList<>();
-//        for(int i = 0; i < ingredients.size(); i++){
-//            ing.add(ingredients.get(i).getIngredient_name());
-//        }
-//        intent.putStringArrayListExtra("data", ing);
-//        sendBroadcast(intent);
     }
 
     @Override
@@ -386,11 +376,16 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         if (!flag && tabletFlag) {
             player.release();   //it is important to release a player
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -399,9 +394,9 @@ public class RecipeDetails extends AppCompatActivity implements ExoPlayer.EventL
         id = position;
 
         player.release();
-        playerSetup(position);
+        playerSetup(id);
 
         TextView textView = findViewById(R.id.desc);
-        textView.setText(steps.get(position).getDescription());
+        textView.setText(steps.get(id).getDescription());
     }
 }

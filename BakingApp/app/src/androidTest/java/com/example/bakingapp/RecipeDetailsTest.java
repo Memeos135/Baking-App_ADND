@@ -11,29 +11,28 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.intent.Intents.intended;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
-
 
 @RunWith(AndroidJUnit4.class)
-public class SimpleTests {
-    // THIS PORTION (TESTING) HAS BEEN TAKEN FROM AN ONLINE SOURCE
-
+public class RecipeDetailsTest {
     @Rule
-    public final IntentsTestRule<MainActivity> rule =
-            new IntentsTestRule<MainActivity>(MainActivity.class){
+    public final IntentsTestRule<RecipeDetails> rule =
+            new IntentsTestRule<RecipeDetails>(RecipeDetails.class){
                 @Override
                 protected Intent getActivityIntent() {
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-                    Intent result = new Intent(targetContext, MainActivity.class);
-                    result.putExtra("Name", "Earth");
+                    Intent result = new Intent(targetContext, RecipeDetails.class);
+                    result.putExtra("test", "Earth");
                     return result;
                 }
             };
 
     @Test
-    public void test() throws Exception {
-        onView(withId(R.id.textView)).check(matches(withText("Earth")));
+    public void test() throws Exception{
+        onView(withId(R.id.fragment_text)).perform(click());
+        intended(hasComponent(StepDetails.class.getName()));
     }
 }

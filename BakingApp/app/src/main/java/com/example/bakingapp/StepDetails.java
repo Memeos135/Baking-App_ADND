@@ -61,7 +61,7 @@ public class StepDetails extends AppCompatActivity implements ExoPlayer.EventLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.step_details);
 
-        if(savedInstanceState == null) {
+        if(savedInstanceState == null && getIntent().getStringExtra("test") == null) {
 
             stepSetter = getIntent().getParcelableExtra("stepSetter");
             parent_position = getIntent().getIntExtra("parent_position", 0);
@@ -90,6 +90,9 @@ public class StepDetails extends AppCompatActivity implements ExoPlayer.EventLis
     public void checkVideoUrl(){
         if(!stepSetter.getVideoURL().equals("")){
             // DO VIDEO
+            if(player != null){
+                player.release();
+            }
             playerSetup();
         }else{
             Toast.makeText(this, "Could not load video.", Toast.LENGTH_SHORT).show();
@@ -162,6 +165,7 @@ public class StepDetails extends AppCompatActivity implements ExoPlayer.EventLis
                                     stepSetter.setVideoURL(videoURL);
 
                                     updateUI(stepSetter);
+                                    player.release();
                                     playerSetup();
                                 }
 
@@ -215,6 +219,7 @@ public class StepDetails extends AppCompatActivity implements ExoPlayer.EventLis
                                     stepSetter.setVideoURL(videoURL);
 
                                     updateUI(stepSetter);
+                                    player.release();
                                     playerSetup();
                                 }
 
@@ -351,10 +356,15 @@ public class StepDetails extends AppCompatActivity implements ExoPlayer.EventLis
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (!flag) {
+    protected void onStop() {
+        super.onStop();
+        if (!flag && getIntent().getStringExtra("test") == null) {
             player.release();   //it is important to release a player
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

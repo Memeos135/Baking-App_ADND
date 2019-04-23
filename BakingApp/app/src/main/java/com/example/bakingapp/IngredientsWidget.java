@@ -3,9 +3,9 @@ package com.example.bakingapp;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.widget.RemoteViews;
 
 
@@ -14,27 +14,23 @@ import android.widget.RemoteViews;
  */
 public class IngredientsWidget extends AppWidgetProvider {
 
-    public static final String EXTRA_ITEM = "com.example.edockh.EXTRA_ITEM";
-
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        // THIS WHOLE FUNCTION HAS BEEN TAKEN FROM AN ONLINE SOURCE WITH A FEW CHANGES MADE BY MYSELF
 
-        Intent serviceIntent = new Intent(context, WidgetService.class);
-
-        serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
-        // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ingredients_widget);
-        views.setRemoteAdapter(R.id.widget_listview, serviceIntent);
 
-        Intent startActivityIntent = new Intent(context,RecipeDetails.class);
-        PendingIntent startActivityPendingIntent = PendingIntent.getActivity(context, 0, startActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        views.setPendingIntentTemplate(R.id.widget_listview, startActivityPendingIntent);
+        views.setOnClickPendingIntent(R.id.np, getPendingSelfIntent(context, "np", 0, appWidgetId));
+        views.setOnClickPendingIntent(R.id.br, getPendingSelfIntent(context, "br", 1, appWidgetId));
+        views.setOnClickPendingIntent(R.id.yc, getPendingSelfIntent(context, "yc", 2, appWidgetId));
+        views.setOnClickPendingIntent(R.id.cc, getPendingSelfIntent(context, "cc", 3, appWidgetId));
 
-        // Instruct the widget manager to update the widget
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_listview);
         appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
+
+    protected static PendingIntent getPendingSelfIntent(Context context, String action, int rc, int appID) {
+        Intent intent = new Intent(context, WidgetService.class);
+        intent.setAction(action);
+        return PendingIntent.getService(context, rc, intent, 0);
     }
 
     @Override
@@ -53,6 +49,25 @@ public class IngredientsWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (intent.getStringExtra("response") != null) {
+
+            String response = intent.getStringExtra("response");
+
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            ComponentName thisWidget = new ComponentName(context, com.example.bakingapp.IngredientsWidget.class);
+
+            int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
+            for(int widgetId : allWidgetIds){
+                RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.ingredients_widget);
+                remoteViews.setTextViewText(R.id.ingredientItem, response);
+                appWidgetManager.updateAppWidget(widgetId, remoteViews);
+            }
+        }
     }
 }
 
